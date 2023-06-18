@@ -7,11 +7,11 @@ namespace Война_потоков
 {
     class Program
     {
-        // Import the ReadConsoleInput function
+        // Импортируем функцию ReadConsoleInput 
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool ReadConsoleInput(IntPtr hConsoleInput, [Out] INPUT_RECORD[] lpBuffer, uint nLength, out uint lpNumberOfEventsRead);
 
-        // Create a structure to hold the console input record
+        // Структура для консоли и Key event record
         [StructLayout(LayoutKind.Sequential)]
         struct INPUT_RECORD
         {
@@ -19,7 +19,7 @@ namespace Война_потоков
             public KEY_EVENT_RECORD KeyEvent;
         }
 
-        // Create a structure to hold the key event record
+        // Структура key event
         [StructLayout(LayoutKind.Sequential)]
         struct KEY_EVENT_RECORD
         {
@@ -51,19 +51,18 @@ namespace Война_потоков
 
             Console.CursorVisible = false;
 
-            // Start the player input thread
+            // Поток инпутов игрока
             Thread inputThread = new Thread(HandlePlayerInput);
             inputThread.Start();
 
-            // Start the enemy movement thread
+            // Поток противников
             Thread enemyThread = new Thread(MoveEnemies);
             enemyThread.Start();
 
-            // Start the bullet movement thread
+            // Поток выхода пули
             Thread bulletThread = new Thread(MoveBullets);
             bulletThread.Start();
 
-            // Main game loop
             while (gameRunning)
             {
                 Console.Clear();
@@ -72,7 +71,7 @@ namespace Война_потоков
                 Console.WriteLine("Score: " + score);
                 Console.WriteLine("------------");
 
-                // Display the player and enemies
+                // Рендерим игрока
                 Console.SetCursorPosition(playerPosition, Console.WindowHeight - 1);
                 Console.Write("^");
 
@@ -94,7 +93,7 @@ namespace Война_потоков
                 Thread.Sleep(50);
             }
 
-            // Wait for threads to finish
+            // Ждем конец потока
             inputThread.Join();
             enemyThread.Join();
             bulletThread.Join();
@@ -138,22 +137,22 @@ namespace Война_потоков
             {
                 lock (lockObject)
                 {
-                    // Move enemies down
+                    // Движение противников
                     for (int i = 0; i < enemies.Count; i++)
                     {
                         enemies[i].Y += 1;
 
-                        // Check for collision with player
+                        // Проверка на столкновение с игроком
                         if (enemies[i].X == playerPosition && enemies[i].Y == Console.WindowHeight - 1)
                         {
                             gameRunning = false;
                         }
                     }
 
-                    // Remove enemies that have reached the bottom
+                    // Удалить противников как они уходят с экрана
                     enemies.RemoveAll(e => e.Y >= Console.WindowHeight);
 
-                    // Add new enemies randomly
+                    // Добавляем противников
                     if (random.Next(0, 10) < 3)
                     {
                         int x = random.Next(0, Console.WindowWidth);
@@ -172,12 +171,12 @@ namespace Война_потоков
             {
                 lock (lockObject)
                 {
-                    // Move bullets up
+                    // Двигаем выстрелы
                     for (int i = 0; i < bullets.Count; i++)
                     {
                         bullets[i].Y -= 1;
 
-                        // Remove bullets that have reached the top
+                        // Удаляем старые выстрелы
                         if (bullets[i].Y <= 0)
                         {
                             bullets.RemoveAt(i);
@@ -185,7 +184,7 @@ namespace Война_потоков
                         }
                     }
 
-                    // Check for collision between bullets and enemies
+                    // Проверка на коллизии
                     for (int i = 0; i < bullets.Count; i++)
                     {
                         for (int j = 0; j < enemies.Count; j++)
